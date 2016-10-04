@@ -3,7 +3,7 @@ schedulemaster.py
 
 CSCI-4210 Operating Systems F16
 
-This rudimentary simulation of an operating systemis a process simulation
+This rudimentary simulation of an operating system is a process simulation
 model in Python to compare efficiency between first-come first-served,
 shortest job first, and round robin process scheduling algorithms.
 """
@@ -44,7 +44,7 @@ class ScheduleMaster(object):
 
 	def simulate(self, algorithm):
 		self.ready_queue = Queue.Queue()
-		print 'time ' + repr(self.t) + 'ms: Simulation started [Q ' + self.show_queue() + ']' 
+		print 'time ' + repr(self.t) + 'ms: Simulation started for ' + algorithm + ' [Q ' + self.show_queue() + ']' 
 		# TODO Add processes from self.process_list to ready_queue based on algorithm.
 
 		# TODO Set up some kind of while-loop here.
