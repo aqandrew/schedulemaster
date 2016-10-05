@@ -11,33 +11,43 @@ shortest job first, and round robin process scheduling algorithms.
 import sys
 import os
 import Queue
-
-# TODO Should we create a Process class?
+from process import Process
 
 class ScheduleMaster(object):
-	def __init__(self, input_file):
-		n = 0 # Number of processes to simulate, determined by input file
-			  # TODO edit this value in read_input
-		m = 1 # Number of processors (i.e. cores) available within the CPU
-		t_cs = 8 # Time in ms it takes to perform a context switch
-		t_slice = 84 # Time in ms each process is given to complete its
-					 # 	CPU burst in round robin
-		self.t = 0 # Elapsed time in milliseconds
+	n = 0 # Number of processes to simulate, determined by input file
+	m = 1 # Number of processors (i.e. cores) available within the CPU
+	t_cs = 8 # Time in ms it takes to perform a context switch
+	t_slice = 84 # Time in ms each process is given to complete its
+				 # 	CPU burst in round robin
 
+	def __init__(self, input_file):
+		self.t = 0 # Elapsed time in milliseconds
 		self.read_input(input_file)
 
 	# Any line beginning with a # character is ignored
 	#	(these lines are comments).
 	# All blank lines are also ignored, including lines containing
 	#	only whitespace characters.
-	# TODO If an error in the input file format is detected,
+	# If an error in the input file format is detected,
 	#	display an error message.
 	def valid_line(self, line):
 		return (not line.isspace()) and line[0] != '#'
 
 	def read_input(self, input_file):
 		with open(input_file, 'r') as input_data:
-			self.process_list = [line.strip() for line in input_data if self.valid_line(line)]
+			process_strings = [line.strip() for line in input_data if self.valid_line(line)]
+			self.process_list = []
+
+			try:
+				for process_string in process_strings:
+					process_params = process_string.split('|')
+					self.process_list.append(Process(*process_params))
+			except TypeError as err:
+				print 'Invalid input file format:'
+				print '\t', err
+				sys.exit(1)
+
+			n = len(self.process_list)
 
 	def show_queue(self):
 		return repr(list(self.ready_queue.queue))
