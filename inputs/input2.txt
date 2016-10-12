@@ -1,0 +1,8 @@
+# This simple set of processes comes from 9/26 notes.
+# ASCII process-versus-time graphs for FCFS and SJF
+#	are available for verification in said notes.
+#
+P|0|18|1|0
+Q|0|5|1|0
+R|2|2|1|0
+S|4|10|1|0

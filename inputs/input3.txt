@@ -1,0 +1,8 @@
+# This simple set of processes comes from 9/29 notes.
+# An ASCII process-versus-time graph for RR for t_slice = 2 is available
+#	for verification in said notes.
+#
+P|0|6|1|0
+Q|0|3|1|0
+R|0|1|1|0
+S|0|7|1|0
