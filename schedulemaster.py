@@ -50,11 +50,18 @@ class ScheduleMaster(object):
 			n = len(self.process_list)
 
 	def show_queue(self):
-		return repr(list(self.ready_queue.queue))
+		queue_representation = '[Q '
+
+		if self.ready_queue.queue:
+			queue_representation += repr(list(self.ready_queue.queue))[1:-1].split(',').join()
+		else:
+			queue_representation += 'empty'
+		
+		return queue_representation + ']'
 
 	def simulate(self, algorithm):
 		self.ready_queue = Queue.Queue()
-		print 'time ' + repr(self.t) + 'ms: Simulation started for ' + algorithm + ' [Q ' + self.show_queue() + ']' 
+		print 'time ' + repr(self.t) + 'ms: Simulator started for ' + algorithm + ' ' + self.show_queue() 
 		# TODO Add processes from self.process_list to ready_queue based on algorithm.
 
 		# TODO Set up some kind of while-loop here.
@@ -71,7 +78,10 @@ class ScheduleMaster(object):
 		# TODO Print whenever a process terminates (by finishing its last CPU burst).
 
 		# TODO When all processes terminate, the simulation ends.
-		print 'time ' + repr(self.t) + 'ms: Simulation ended for ' + algorithm
+		print 'time ' + repr(self.t) + 'ms: Simulator ended for ' + algorithm
+
+		if algorithm != 'RR':
+			print ''
 
 	def reset(self):
 		self.t = 0
@@ -84,7 +94,7 @@ class ScheduleMaster(object):
 			burst_times = [process.cpu_burst_time * process.num_bursts for process in self.process_list]
 			average_burst_time = '%.2f' % (sum(burst_times) / float(len(burst_times)))
 			output.write('-- average CPU burst time: ' + average_burst_time + ' ms\n')
-			
+
 			# TODO Print average wait time.
 			# TODO Print average turnaround time.
 			# TODO Print total number of context switches.
