@@ -91,7 +91,7 @@ class ScheduleMaster(object):
 			output.write('Algorithm ' + algorithm + '\n')
 
 			# Print average CPU burst time, calculated from the input data.
-			burst_times = [process.cpu_burst_time * process.num_bursts for process in self.process_list]
+			burst_times = [process.cpu_burst_time for process in self.process_list for burst_num in range(process.num_bursts)]
 			average_burst_time = '%.2f' % (sum(burst_times) / float(len(burst_times)))
 			output.write('-- average CPU burst time: ' + average_burst_time + ' ms\n')
 

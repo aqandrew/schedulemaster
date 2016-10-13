@@ -1,6 +1,6 @@
 Algorithm FCFS
--- average CPU burst time: 1312.50 ms
+-- average CPU burst time: 403.85 ms
 Algorithm SJF
--- average CPU burst time: 1312.50 ms
+-- average CPU burst time: 403.85 ms
 Algorithm RR
--- average CPU burst time: 1312.50 ms
+-- average CPU burst time: 403.85 ms
