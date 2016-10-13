@@ -79,7 +79,12 @@ class ScheduleMaster(object):
 	def write_output(self, output_file, algorithm):
 		with open(output_file, 'a') as output:
 			output.write('Algorithm ' + algorithm + '\n')
-			# TODO Print average CPU burst time.
+
+			# Print average CPU burst time, calculated from the input data.
+			burst_times = [process.cpu_burst_time * process.num_bursts for process in self.process_list]
+			average_burst_time = '%.2f' % (sum(burst_times) / float(len(burst_times)))
+			output.write('-- average CPU burst time: ' + average_burst_time + ' ms\n')
+			
 			# TODO Print average wait time.
 			# TODO Print average turnaround time.
 			# TODO Print total number of context switches.

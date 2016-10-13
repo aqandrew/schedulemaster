@@ -15,10 +15,10 @@ class Process(object):
 		self.must_be_int('io_time', time_io)
 
 		self.proc_id = pid;
-		self.initial_arrival_time = arrival_time
-		self.cpu_burst_time = burst_time
-		self.num_bursts = burst_num
-		self.io_time = time_io
+		self.initial_arrival_time = int(arrival_time)
+		self.cpu_burst_time = int(burst_time)
+		self.num_bursts = int(burst_num)
+		self.io_time = int(time_io)
 
 	def must_be_int(self, parameter, argument):
 		if not self.string_is_int(argument):
