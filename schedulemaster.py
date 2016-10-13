@@ -60,7 +60,11 @@ class ScheduleMaster(object):
 		return queue_representation + ']'
 
 	def simulate(self, algorithm):
-		self.ready_queue = Queue.Queue()
+		if algorithm == 'SJF':
+			self.ready_queue = Queue.PriorityQueue()
+		else:
+			self.ready_queue = Queue.Queue()
+			
 		print 'time ' + repr(self.t) + 'ms: Simulator started for ' + algorithm + ' ' + self.show_queue() 
 		# TODO Add processes from self.process_list to ready_queue based on algorithm.
 
