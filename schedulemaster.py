@@ -21,15 +21,22 @@ class ScheduleMaster(object):
 				 # 	CPU burst in round robin
 
 	def __init__(self, input_file):
-		self.t = 0 # Elapsed time in milliseconds
-		self.read_input(input_file)
+		self.reset(input_file)
 
-	# Any line beginning with a # character is ignored
-	#	(these lines are comments).
-	# All blank lines are also ignored, including lines containing
-	#	only whitespace characters.
-	# If an error in the input file format is detected,
-	#	display an error message.
+	def reset(self, input_file):
+		self.t = 0 # Elapsed time in milliseconds
+		self.num_context_switches = 0
+		self.num_preemptions = 0
+		self.read_input(input_file) # Erase output statistics
+
+	"""
+	Any line beginning with a # character is ignored
+		(these lines are comments).
+	All blank lines are also ignored, including lines containing
+		only whitespace characters.
+	If an error in the input file format is detected,
+		display an error message (handled in process.py).
+	"""
 	def valid_line(self, line):
 		return (not line.isspace()) and line[0] != '#'
 
@@ -64,12 +71,11 @@ class ScheduleMaster(object):
 			self.ready_queue = Queue.PriorityQueue()
 		else:
 			self.ready_queue = Queue.Queue()
-			
+
 		print 'time ' + repr(self.t) + 'ms: Simulator started for ' + algorithm + ' ' + self.show_queue() 
 		# TODO Add processes from self.process_list to ready_queue based on algorithm.
 
 		# TODO Set up some kind of while-loop here.
-		# TODO Measure CPU burst time for each simulated process.
 		# TODO Measure turnaround time for each simulated process.
 		#			   == arrival time ... CPU burst completed, including context switches
 		# TODO Measure wait time for each simulated process.
@@ -86,9 +92,6 @@ class ScheduleMaster(object):
 
 		if algorithm != 'RR':
 			print ''
-
-	def reset(self):
-		self.t = 0
 
 	def write_output(self, output_file, algorithm):
 		with open(output_file, 'a') as output:
@@ -124,7 +127,7 @@ def main():
 	for algorithm in algorithms:
 		sm.simulate(algorithm)
 		sm.write_output(output_file, algorithm)
-		sm.reset()
+		sm.reset(input_file)
 
 
 if __name__ == "__main__":

@@ -14,11 +14,16 @@ class Process(object):
 		self.must_be_int('num_bursts', burst_num)
 		self.must_be_int('io_time', time_io)
 
+		# Input file variables
 		self.proc_id = pid;
 		self.initial_arrival_time = int(arrival_time)
 		self.cpu_burst_time = int(burst_time)
 		self.num_bursts = int(burst_num)
 		self.io_time = int(time_io)
+
+		# Output file variables
+		self.wait_time = 0
+		self.turnaround_time = 0
 
 	def must_be_int(self, parameter, argument):
 		if not self.string_is_int(argument):
