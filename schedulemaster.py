@@ -102,10 +102,18 @@ class ScheduleMaster(object):
 			average_burst_time = '%.2f' % (sum(burst_times) / float(len(burst_times)))
 			output.write('-- average CPU burst time: ' + average_burst_time + ' ms\n')
 
-			# TODO Print average wait time.
-			# TODO Print average turnaround time.
-			# TODO Print total number of context switches.
-			# TODO Print total number of preemptions.
+			# Print average wait time.
+			wait_times = [process.wait_time for process in self.process_list]
+			average_wait_time = '%.2f' % (sum(wait_times) / float(len(wait_times)))
+			output.write('-- average wait time: ' + average_wait_time + ' ms\n')
+
+			# Print average turnaround time.
+			turnaround_times = [process.turnaround_time for process in self.process_list]
+			average_turnaround_time = '%.2f' % (sum(turnaround_times) / float(len(turnaround_times)))
+			output.write('-- average turnaround time: ' + average_turnaround_time + ' ms\n')
+
+			output.write('-- total number of context switches: ' + repr(self.num_context_switches) + '\n')
+			output.write('-- total number of preemptions: ' + repr(self.num_preemptions) + '\n')
 
 
 def main():
