@@ -95,8 +95,8 @@ class ScheduleMaster(object):
 				for blocked_tuple in self.blocked_processes:
 					blocked_process = blocked_tuple[0]
 					unblock_time = blocked_tuple[1]
-					#print '\tblocked_process:', blocked_process.proc_id
-					if unblock_time == self.t:
+
+					if self.t == unblock_time:
 						self.ready_queue.put(blocked_process)
 						print 'time ' + repr(self.t) + 'ms: Process ' + blocked_process.proc_id + ' completed I/O ' + self.show_queue()
 						blocked_process.current_job = None
@@ -107,6 +107,7 @@ class ScheduleMaster(object):
 				if self.ready_queue.queue:
 					self.running_process = self.ready_queue.get()
 					self.t += ScheduleMaster.t_cs / 2
+					self.num_context_switches += 1
 					print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' started using the CPU ' + self.show_queue()
 
 			if self.running_process:
