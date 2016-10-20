@@ -31,12 +31,14 @@ class Process(object):
 		self.job_queue = Queue.Queue()
 
 		# Whenever a process completes a CPU burst, it performs an I/O operation.
-		for burst in num_bursts[:-1]:
-			job_queue.put('burst')
-			job.queue.put('io')
+		for burst in range(self.num_bursts - 1):
+			self.job_queue.put('burst')
+			self.job.queue.put('io')
 		# However, we do not care about the last process' I/O operation.
 		else:
-			job_queue.put('burst')
+			self.job_queue.put('burst')
+
+		self.current_job = None
 
 	# Overriding __cmp__ is necessary to implement SJF's PriorityQueue.
 	def __cmp__(self, other):
@@ -54,4 +56,7 @@ class Process(object):
 			return False
 
 	def has_terminated(self):
-		return len(self.job_queue) == 0
+		return self.job_queue.empty()
+
+	def set_current_job(self):
+		self.current_job = self.job_queue.get()
