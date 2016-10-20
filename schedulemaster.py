@@ -92,17 +92,15 @@ class ScheduleMaster(object):
 			#			   == time spent in ready queue, excluding context switches
 
 			if self.blocked_processes:
-				for blocked_process in self.blocked_processes:
+				for blocked_tuple in self.blocked_processes:
+					blocked_process = blocked_tuple[0]
+					unblock_time = blocked_tuple[1]
 					#print '\tblocked_process:', blocked_process.proc_id
-					if blocked_process.current_job.remaining_time > 0:
-						blocked_process.current_job.remaining_time -= 1
-						#print '\t\tblocked_process.current_job.remaining_time:', blocked_process.current_job.remaining_time
-					else:
-						# Print whenever a process finishes performing I/O.
+					if unblock_time == self.t:
+						self.ready_queue.put(blocked_process)
 						print 'time ' + repr(self.t) + 'ms: Process ' + blocked_process.proc_id + ' completed I/O ' + self.show_queue()
 						blocked_process.current_job = None
-						self.ready_queue.put(blocked_process)
-						self.blocked_processes.remove(blocked_process)
+						self.blocked_processes.remove(blocked_tuple)
 
 			if not self.running_process:
 				# Print whenever a process starts using the CPU.
@@ -123,6 +121,8 @@ class ScheduleMaster(object):
 						remaining_bursts = len([job for job in self.running_process.job_queue.queue if job.job_type == 'burst'])
 
 						if remaining_bursts == 0:
+							self.running_process.bursts_completed += 1
+							
 							# Print whenever a process terminates (by finishing its last CPU burst).
 							print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' terminated ' + self.show_queue()
 
@@ -132,6 +132,7 @@ class ScheduleMaster(object):
 							# Account for the time taken to remove each process from the CPU.
 							self.t += ScheduleMaster.t_cs / 2 - 1
 						else:
+							self.running_process.bursts_completed += 1
 							# Print whenever a process finishes using the CPU, i.e. completes its CPU burst.
 							print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' completed a CPU burst; ' + repr(remaining_bursts) + ' to go ' + self.show_queue()
 							self.running_process.set_current_job()
@@ -139,7 +140,7 @@ class ScheduleMaster(object):
 							# Print whenever a process starts performing I/O.
 							unblock_time = self.t + self.running_process.io_time
 							print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' blocked on I/O until time ' + repr(unblock_time) + ' ms ' + self.show_queue()
-							self.blocked_processes.append(self.running_process)
+							self.blocked_processes.append((self.running_process, unblock_time))
 
 							# Perform context switch to next process.
 							self.running_process = None

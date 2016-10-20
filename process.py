@@ -28,8 +28,8 @@ class Process(object):
 		self.wait_time = 0
 		self.turnaround_time = 0
 
-		# Representation of tasks needed to execute this process
-		self.job_queue = Queue.Queue()
+		self.bursts_completed = 0
+		self.job_queue = Queue.Queue() # Representation of tasks needed to execute this process
 
 		# Whenever a process completes a CPU burst, it performs an I/O operation.
 		for burst in range(self.num_bursts - 1):
@@ -57,7 +57,7 @@ class Process(object):
 			return False
 
 	def has_terminated(self):
-		return self.job_queue.empty()
+		return self.job_queue.empty() and self.bursts_completed == self.num_bursts
 
 	def set_current_job(self):
 		self.current_job = self.job_queue.get()
