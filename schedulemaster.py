@@ -90,23 +90,32 @@ class ScheduleMaster(object):
 			# TODO Measure wait time for each simulated process.
 			#			   == time spent in ready queue, excluding context switches
 
-			if self.running_process:
-				current_operation = self.running_process.current_job
-
-				if current_operation:
-					if current_operation == 'burst':
-						print 'TODO handle CPU bursts'
-					else: # I/O operation
-						# TODO Print whenever a process starts performing I/O.
-						print 'TODO handle I/O operations'
-						# TODO Print whenever a process finishes performing I/O.
-				else:
-					self.running_process.set_current_job()
-			else:
+			if not self.running_process:
 				# Print whenever a process starts using the CPU.
 				self.running_process = self.ready_queue.get()
 				self.t += ScheduleMaster.t_cs / 2
 				print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' started using the CPU ' + self.show_queue()
+
+			if not self.running_process.current_job:
+				self.running_process.set_current_job()
+				current_operation = self.running_process.current_job
+
+			if current_operation.job_type == 'burst':
+				if current_operation.remaining_time > 0:
+					current_operation.remaining_time -= 1
+				else:
+					remaining_bursts = len([job for job in self.running_process.job_queue.queue if job.job_type == 'burst'])
+
+					if remaining_bursts == 0:
+						print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' terminated ' + self.show_queue()
+						break
+					else:
+						print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' completed a cpu burst; '
+			else: # I/O operation
+				# TODO Print whenever a process starts performing I/O.
+				print 'TODO handle I/O operations'
+				# TODO Print whenever a process finishes performing I/O.
+				
 
 			# TODO Print whenever a process finishes using the CPU, i.e. completes its CPU burst.
 			# TODO Print whenever a process is preempted.
@@ -162,10 +171,15 @@ def main():
 	sm = ScheduleMaster(input_file)
 	algorithms = ['FCFS', 'SJF', 'RR']
 
+	"""
 	for algorithm in algorithms:
 		sm.simulate(algorithm)
 		sm.write_output(output_file, algorithm)
 		sm.reset(input_file)
+	"""
+	algorithm = algorithms[0]
+	sm.simulate(algorithm)
+	sm.write_output(output_file, algorithm)
 
 
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ three states: ready, running, or blocked.
 """
 
 import Queue
+from job import Job
 
 class Process(object):
 	def __init__(self, pid, arrival_time, burst_time, burst_num, time_io):
@@ -32,11 +33,11 @@ class Process(object):
 
 		# Whenever a process completes a CPU burst, it performs an I/O operation.
 		for burst in range(self.num_bursts - 1):
-			self.job_queue.put('burst')
-			self.job_queue.put('io')
+			self.job_queue.put(Job('burst', self.cpu_burst_time))
+			self.job_queue.put(Job('io', self.io_time))
 		# However, we do not care about the last process' I/O operation.
 		else:
-			self.job_queue.put('burst')
+			self.job_queue.put(Job('burst', self.cpu_burst_time))
 
 		self.current_job = None
 
