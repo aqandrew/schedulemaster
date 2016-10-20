@@ -33,7 +33,7 @@ class Process(object):
 		# Whenever a process completes a CPU burst, it performs an I/O operation.
 		for burst in range(self.num_bursts - 1):
 			self.job_queue.put('burst')
-			self.job.queue.put('io')
+			self.job_queue.put('io')
 		# However, we do not care about the last process' I/O operation.
 		else:
 			self.job_queue.put('burst')
