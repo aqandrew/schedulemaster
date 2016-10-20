@@ -5,6 +5,8 @@ This class represents a process on an operating system. It can be in one of
 three states: ready, running, or blocked.
 """
 
+import Queue
+
 class Process(object):
 	def __init__(self, pid, arrival_time, burst_time, burst_num, time_io):
 		if not (type(pid) is str and len(pid) == 1 and pid.isupper()):
@@ -25,6 +27,14 @@ class Process(object):
 		self.wait_time = 0
 		self.turnaround_time = 0
 
+		# Representation of tasks needed to execute this process
+		self.job_queue = Queue.Queue()
+
+		# Whenever a process completes a CPU burst, it performs an I/O operation.
+		for burst in num_bursts:
+			job_queue.put('burst')
+			job.queue.put('io')
+
 	# Overriding __cmp__ is necessary to implement SJF's PriorityQueue.
 	def __cmp__(self, other):
 		return cmp(self.cpu_burst_time, other.cpu_burst_time)
@@ -41,4 +51,4 @@ class Process(object):
 			return False
 
 	def has_terminated(self):
-		return self.num_bursts == 0
+		return len(self.job_queue) == 0
