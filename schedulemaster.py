@@ -89,8 +89,13 @@ class ScheduleMaster(object):
 			#			   == arrival time ... CPU burst completed, including context switches
 			# TODO Measure wait time for each simulated process.
 			#			   == time spent in ready queue, excluding context switches
-			# TODO Print whenever a process starts using the CPU.
-			#	Note that this is t_cs / 2 if no process is currently using the CPU.
+
+			# Print whenever a process starts using the CPU.
+			if not self.running_process: # TODO include context switches in this check
+				self.running_process = self.ready_queue.get()
+				self.t += ScheduleMaster.t_cs / 2
+				print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process + ' started using the CPU ' + self.show_queue()
+
 			# TODO Print whenever a process finishes using the CPU, i.e. completes its CPU burst.
 			# TODO Print whenever a process is preempted.
 			# TODO Print whenever a process starts performing I/O.

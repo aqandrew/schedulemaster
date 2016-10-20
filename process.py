@@ -34,6 +34,7 @@ class Process(object):
 		for burst in num_bursts[:-1]:
 			job_queue.put('burst')
 			job.queue.put('io')
+		# However, we do not care about the last process' I/O operation.
 		else:
 			job_queue.put('burst')
 
