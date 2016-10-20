@@ -27,6 +27,7 @@ class ScheduleMaster(object):
 		self.t = 0 # Elapsed time in milliseconds
 		self.num_context_switches = 0
 		self.num_preemptions = 0
+		self.running_process = None
 		self.read_input(input_file) # Erase output statistics
 
 	"""
@@ -60,7 +61,7 @@ class ScheduleMaster(object):
 		queue_representation = '[Q '
 
 		if self.ready_queue.queue:
-			queue_representation += repr(list(self.ready_queue.queue))[1:-1].split(',').join()
+			queue_representation += repr([process.proc_id for process in self.ready_queue])[1:-1].split(',').join()
 		else:
 			queue_representation += 'empty'
 		
@@ -75,8 +76,15 @@ class ScheduleMaster(object):
 		print 'time ' + repr(self.t) + 'ms: Simulator started for ' + algorithm + ' ' + self.show_queue() 
 
 		while not all([process.has_terminated() for process in self.process_list]):
-			# TODO Print whenever a process arrives to the CPU.
-			# TODO Add processes from self.process_list to ready_queue based on algorithm.
+			# Print whenever a process arrives to the CPU.
+			arriving_processes = [process for process in self.process_list if process.initial_arrival_time == self.t]
+
+			if arriving_processes:
+				for arriving_process in arriving_processes:
+					# Add processes from self.process_list to ready_queue based on algorithm.
+					self.ready_queue.put(arriving_process)
+					print 'time ' + repr(self.t) + 'ms: Process ' + arriving_process.proc_id + ' arrived ' + self.show_queue()
+
 			# TODO Measure turnaround time for each simulated process.
 			#			   == arrival time ... CPU burst completed, including context switches
 			# TODO Measure wait time for each simulated process.
