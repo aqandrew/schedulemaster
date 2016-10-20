@@ -28,6 +28,7 @@ class ScheduleMaster(object):
 		self.num_context_switches = 0
 		self.num_preemptions = 0
 		self.running_process = None
+		self.blocked_process = None
 		self.read_input(input_file) # Erase output statistics
 
 	"""
@@ -100,6 +101,15 @@ class ScheduleMaster(object):
 				self.running_process.set_current_job()
 				current_operation = self.running_process.current_job
 
+			if self.blocked_process:
+				if self.blocked_process.current_job.remaining_time > 0:
+					self.blocked_process.current_job.remaining_time -= 1
+				else:
+					# Print whenever a process finishes performing I/O.
+					print 'time ' + repr(self.t) + 'ms: Process ' + self.blocked_process.proc_id + ' completed I/O ' + self.show_queue()
+					self.ready_queue.put(self.blocked_process)
+					self.blocked_process = None
+
 			if current_operation.job_type == 'burst':
 				if current_operation.remaining_time > 0:
 					current_operation.remaining_time -= 1
@@ -107,25 +117,39 @@ class ScheduleMaster(object):
 					remaining_bursts = len([job for job in self.running_process.job_queue.queue if job.job_type == 'burst'])
 
 					if remaining_bursts == 0:
+						# Print whenever a process terminates (by finishing its last CPU burst).
 						print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' terminated ' + self.show_queue()
-						break
-					else:
-						print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' completed a cpu burst; '
-			else: # I/O operation
-				# TODO Print whenever a process starts performing I/O.
-				print 'TODO handle I/O operations'
-				# TODO Print whenever a process finishes performing I/O.
-				
 
-			# TODO Print whenever a process finishes using the CPU, i.e. completes its CPU burst.
+						# Perform context switch to next process.
+						self.running_process = None
+
+						# Account for the time taken to remove each process from the CPU.
+						self.t += ScheduleMaster.t_cs / 2 - 1
+					else:
+						# Print whenever a process finishes using the CPU, i.e. completes its CPU burst.
+						print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' completed a CPU burst; ' + repr(remaining_bursts) + ' to go ' + self.show_queue()
+						self.running_process.set_current_job()
+
+						# Print whenever a process starts performing I/O.
+						unblock_time = self.t + self.running_process.io_time
+						print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' blocked on I/O until time ' + repr(unblock_time) + ' ms' + self.show_queue()
+						self.blocked_process = self.running_process
+
+						# Perform context switch to next process.
+						self.running_process = None
+
+						# Account for the time taken to remove each process from the CPU.
+						self.t += ScheduleMaster.t_cs / 2 - 1
+			"""
+			else: # I/O operation
+				if current_operation.remaining_time > 0:
+					current_operation.remaining_time -= 1
+				else:
+			"""
+
 			# TODO Print whenever a process is preempted.
 
-			# TODO Print whenever a process terminates (by finishing its last CPU burst).
 			self.t += 1
-
-		# Account for the time taken to remove the last process from the CPU.		
-		if self.process_list:
-			self.t += ScheduleMaster.t_cs / 2
 
 		print 'time ' + repr(self.t) + 'ms: Simulator ended for ' + algorithm
 
