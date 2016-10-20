@@ -118,21 +118,13 @@ class ScheduleMaster(object):
 					if current_operation.remaining_time > 0:
 						current_operation.remaining_time -= 1
 					else:
+						self.running_process.bursts_completed += 1
 						remaining_bursts = len([job for job in self.running_process.job_queue.queue if job.job_type == 'burst'])
 
 						if remaining_bursts == 0:
-							self.running_process.bursts_completed += 1
-							
 							# Print whenever a process terminates (by finishing its last CPU burst).
 							print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' terminated ' + self.show_queue()
-
-							# Perform context switch to next process.
-							self.running_process = None
-
-							# Account for the time taken to remove each process from the CPU.
-							self.t += ScheduleMaster.t_cs / 2 - 1
 						else:
-							self.running_process.bursts_completed += 1
 							# Print whenever a process finishes using the CPU, i.e. completes its CPU burst.
 							print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' completed a CPU burst; ' + repr(remaining_bursts) + ' to go ' + self.show_queue()
 							self.running_process.set_current_job()
@@ -142,11 +134,11 @@ class ScheduleMaster(object):
 							print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' blocked on I/O until time ' + repr(unblock_time) + ' ms ' + self.show_queue()
 							self.blocked_processes.append((self.running_process, unblock_time))
 
-							# Perform context switch to next process.
-							self.running_process = None
+						# Perform context switch to next process.
+						self.running_process = None
 
-							# Account for the time taken to remove each process from the CPU.
-							self.t += ScheduleMaster.t_cs / 2 - 1
+						# Account for the time taken to remove each process from the CPU.
+						self.t += ScheduleMaster.t_cs / 2 - 1							
 
 			# TODO Print whenever a process is preempted.
 
