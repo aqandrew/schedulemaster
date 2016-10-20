@@ -97,7 +97,11 @@ class ScheduleMaster(object):
 					unblock_time = blocked_tuple[1]
 
 					if self.t == unblock_time:
-						self.ready_queue.put(blocked_process)
+						if algorithm == 'SJF':
+							self.ready_queue.put(blocked_process, blocked_process.cpu_burst_time)
+						else:	
+							self.ready_queue.put(blocked_process)
+							
 						print 'time ' + repr(self.t) + 'ms: Process ' + blocked_process.proc_id + ' completed I/O ' + self.show_queue()
 						blocked_process.current_job = None
 						self.blocked_processes.remove(blocked_tuple)
@@ -109,6 +113,9 @@ class ScheduleMaster(object):
 					self.t += ScheduleMaster.t_cs / 2
 					self.num_context_switches += 1
 					print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' started using the CPU ' + self.show_queue()
+					if self.running_process.wait_time == 0:
+						# Store waiting time of process
+						self.running_process.wait_time = self.t
 
 			if self.running_process:
 				if not self.running_process.current_job:
@@ -129,6 +136,8 @@ class ScheduleMaster(object):
 							# Print whenever a process finishes using the CPU, i.e. completes its CPU burst.
 							print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' completed a CPU burst; ' + repr(remaining_bursts) + ' to go ' + self.show_queue()
 							self.running_process.set_current_job()
+							
+
 
 							# Print whenever a process starts performing I/O.
 							unblock_time = self.t + self.running_process.io_time
@@ -189,15 +198,13 @@ def main():
 	sm = ScheduleMaster(input_file)
 	algorithms = ['FCFS', 'SJF', 'RR']
 
-	"""
 	for algorithm in algorithms:
 		sm.simulate(algorithm)
 		sm.write_output(output_file, algorithm)
 		sm.reset(input_file)
-	"""
-	algorithm = algorithms[0]
-	sm.simulate(algorithm)
-	sm.write_output(output_file, algorithm)
+	#algorithm = algorithms[0]
+	#sm.simulate(algorithm)
+	#sm.write_output(output_file, algorithm)
 
 
 if __name__ == "__main__":
