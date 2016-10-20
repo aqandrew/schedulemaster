@@ -35,3 +35,6 @@ class Process(object):
 			return True
 		except ValueError:
 			return False
+
+	def has_terminated(self):
+		return self.num_bursts == 0

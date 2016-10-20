@@ -74,25 +74,26 @@ class ScheduleMaster(object):
 
 		print 'time ' + repr(self.t) + 'ms: Simulator started for ' + algorithm + ' ' + self.show_queue() 
 
-		# TODO Set up some kind of while-loop here.
-		# TODO Print whenever a process arrives to the CPU.
-		# TODO Add processes from self.process_list to ready_queue based on algorithm.
-		# TODO Measure turnaround time for each simulated process.
-		#			   == arrival time ... CPU burst completed, including context switches
-		# TODO Measure wait time for each simulated process.
-		#			   == time spent in ready queue, excluding context switches
-		# TODO Print whenever a process starts using the CPU.
-		#	Note that this is t_cs / 2 if no process is currently using the CPU.
-		# TODO Print whenever a process finishes using the CPU, i.e. completes its CPU burst.
-		# TODO Print whenever a process is preempted.
-		# TODO Print whenever a process starts performing I/O.
-		# TODO Print whenever a process finishes performing I/O.
-		# TODO Print whenever a process terminates (by finishing its last CPU burst).
+		while not all([process.has_terminated() for process in self.process_list]):
+			# TODO Print whenever a process arrives to the CPU.
+			# TODO Add processes from self.process_list to ready_queue based on algorithm.
+			# TODO Measure turnaround time for each simulated process.
+			#			   == arrival time ... CPU burst completed, including context switches
+			# TODO Measure wait time for each simulated process.
+			#			   == time spent in ready queue, excluding context switches
+			# TODO Print whenever a process starts using the CPU.
+			#	Note that this is t_cs / 2 if no process is currently using the CPU.
+			# TODO Print whenever a process finishes using the CPU, i.e. completes its CPU burst.
+			# TODO Print whenever a process is preempted.
+			# TODO Print whenever a process starts performing I/O.
+			# TODO Print whenever a process finishes performing I/O.
+			# TODO Print whenever a process terminates (by finishing its last CPU burst).
+			self.t += 1
 
-		# TODO When all processes terminate, the simulation ends.
+		# Account for the time taken to remove the last process from the CPU.		
 		if self.process_list:
 			self.t += ScheduleMaster.t_cs / 2
-			
+
 		print 'time ' + repr(self.t) + 'ms: Simulator ended for ' + algorithm
 
 		if algorithm != 'RR':
