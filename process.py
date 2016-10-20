@@ -25,6 +25,10 @@ class Process(object):
 		self.wait_time = 0
 		self.turnaround_time = 0
 
+	# Overriding __cmp__ is necessary to implement SJF's PriorityQueue.
+	def __cmp__(self, other):
+		return cmp(self.cpu_burst_time, other.cpu_burst_time)
+
 	def must_be_int(self, parameter, argument):
 		if not self.string_is_int(argument):
 			raise TypeError(parameter + ' \'' + argument + '\' must be an integer')
