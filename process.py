@@ -26,7 +26,8 @@ class Process(object):
 
 		# Output file variables
 		self.wait_time = 0
-		self.turnaround_time = 0
+		self.turnaround_times = []
+		self.turnaround_start = 0
 
 		self.bursts_completed = 0
 		self.tslice_completed = 0
