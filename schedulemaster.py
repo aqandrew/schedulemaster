@@ -25,6 +25,7 @@ class ScheduleMaster(object):
 
 	def reset(self, input_file):
 		self.t = 0 # Elapsed time in milliseconds
+		self.turnaround_times = []
 		self.num_context_switches = 0
 		self.num_preemptions = 0
 		self.running_process = None
@@ -76,6 +77,8 @@ class ScheduleMaster(object):
 
 		print 'time ' + repr(self.t) + 'ms: Simulator started for ' + algorithm + ' ' + self.show_queue() 
 
+		# TODO Measure turnaround time for each simulated process (this includes context switches).
+
 		while not all([process.has_terminated() for process in self.process_list]):
 			# Print whenever a process arrives to the CPU.
 			arriving_processes = [process for process in self.process_list if process.initial_arrival_time == self.t]
@@ -84,10 +87,9 @@ class ScheduleMaster(object):
 				for arriving_process in arriving_processes:
 					# Add processes from self.process_list to ready_queue based on algorithm.
 					self.ready_queue.put(arriving_process)
+					arriving_process.turnaround_start = self.t
 					print 'time ' + repr(self.t) + 'ms: Process ' + arriving_process.proc_id + ' arrived ' + self.show_queue()
 
-			# TODO Measure turnaround time for each simulated process.
-			#			   == arrival time ... CPU burst completed, including context switches
 			# TODO Measure wait time for each simulated process.
 			#			   == time spent in ready queue, excluding context switches
 
@@ -98,6 +100,7 @@ class ScheduleMaster(object):
 
 					if self.t == unblock_time:
 						self.ready_queue.put(blocked_process)
+						blocked_process.turnaround_start = self.t
 						print 'time ' + repr(self.t) + 'ms: Process ' + blocked_process.proc_id + ' completed I/O ' + self.show_queue()
 						blocked_process.current_job = None
 						self.blocked_processes.remove(blocked_tuple)
@@ -135,11 +138,12 @@ class ScheduleMaster(object):
 							print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' blocked on I/O until time ' + repr(unblock_time) + ' ms ' + self.show_queue()
 							self.blocked_processes.append((self.running_process, unblock_time))
 
-						# Perform context switch to next process.
-						self.running_process = None
-
 						# Account for the time taken to remove each process from the CPU.
-						self.t += ScheduleMaster.t_cs / 2 - 1							
+						self.running_process.turnaround_times.append(self.t - self.running_process.turnaround_start)
+						self.t += ScheduleMaster.t_cs / 2 - 1
+
+						# Prepare to perform a context switch to the next process.
+						self.running_process = None
 
 			# TODO Print whenever a process is preempted.
 
@@ -165,7 +169,7 @@ class ScheduleMaster(object):
 			output.write('-- average wait time: ' + average_wait_time + ' ms\n')
 
 			# Print average turnaround time.
-			turnaround_times = [process.turnaround_time for process in self.process_list]
+			turnaround_times = [time for process in self.process_list for time in process.turnaround_times]
 			average_turnaround_time = '%.2f' % (sum(turnaround_times) / float(len(turnaround_times)))
 			output.write('-- average turnaround time: ' + average_turnaround_time + ' ms\n')
 
