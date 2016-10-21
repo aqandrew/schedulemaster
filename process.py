@@ -29,6 +29,8 @@ class Process(object):
 		self.turnaround_time = 0
 
 		self.bursts_completed = 0
+		self.tslice_completed = 0
+		self.time_left = int(burst_time)
 		self.job_queue = Queue.Queue() # Representation of tasks needed to execute this process
 
 		# Whenever a process completes a CPU burst, it performs an I/O operation.

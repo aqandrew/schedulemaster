@@ -73,13 +73,16 @@ class ScheduleMaster(object):
 			self.ready_queue = Queue.PriorityQueue()
 		else:
 			self.ready_queue = Queue.Queue()
-
+		
 		print 'time ' + repr(self.t) + 'ms: Simulator started for ' + algorithm + ' ' + self.show_queue() 
 
 		while not all([process.has_terminated() for process in self.process_list]):
 			# Print whenever a process arrives to the CPU.
 			arriving_processes = [process for process in self.process_list if process.initial_arrival_time == self.t]
-
+						
+			if algorithm == 'RR':
+					self.t_slice -= 1			
+						
 			if arriving_processes:
 				for arriving_process in arriving_processes:
 					# Add processes from self.process_list to ready_queue based on algorithm.
@@ -121,8 +124,13 @@ class ScheduleMaster(object):
 				if not self.running_process.current_job:
 					self.running_process.set_current_job()
 					current_operation = self.running_process.current_job
-
+					
+				
 				if current_operation.job_type == 'burst':
+					# Sets remaining_time to the time left for the CPU burst for RR algorithm
+					if algorithm == 'RR':
+						current_operation.remaining_time = self.running_process.time_left
+
 					if current_operation.remaining_time > 0:
 						current_operation.remaining_time -= 1
 					else:
@@ -133,15 +141,16 @@ class ScheduleMaster(object):
 							# Print whenever a process terminates (by finishing its last CPU burst).
 							print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' terminated ' + self.show_queue()
 						else:
+							if self.t_slice > 0 and algorithm == 'RR':
+								self.t_slice = 84
+								self.running_process.time_left = self.running_process.cpu_burst_time
+								
 							# Print whenever a process finishes using the CPU, i.e. completes its CPU burst.
 							print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' completed a CPU burst; ' + repr(remaining_bursts) + ' to go ' + self.show_queue()
 							self.running_process.set_current_job()
-							
-
-
 							# Print whenever a process starts performing I/O.
 							unblock_time = self.t + self.running_process.io_time
-							print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' blocked on I/O until time ' + repr(unblock_time) + ' ms ' + self.show_queue()
+							print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' blocked on I/O until time ' + repr(unblock_time) + 'ms ' + self.show_queue()
 							self.blocked_processes.append((self.running_process, unblock_time))
 
 						# Perform context switch to next process.
@@ -149,9 +158,28 @@ class ScheduleMaster(object):
 
 						# Account for the time taken to remove each process from the CPU.
 						self.t += ScheduleMaster.t_cs / 2 - 1							
-
-			# TODO Print whenever a process is preempted.
-
+						
+			# Round Robin t_slice reaching 0 before it has its CPU burst
+			if self.t_slice < 0 and algorithm == 'RR':
+				if self.ready_queue.queue:
+					# Increment count of preemptions and reset time slice
+					self.t_slice = 84
+					self.num_preemptions += 1
+					
+					self.running_process.time_left -= self.t_slice
+						
+					if self.running_process.time_left == 0:
+						continue
+					
+					# Put process back in queue
+					self.ready_queue.put(self.running_process)
+						
+					print 'time ' + repr(self.t) + 'ms: Time slice expired; process ' + self.running_process.proc_id + ' preempted with ' + repr(self.running_process.time_left) + 'ms to go ' + self.show_queue()
+					
+					# Perform context switch to next process
+					self.running_process = None
+					self.t += ScheduleMaster.t_cs / 2	- 1
+						
 			self.t += 1
 
 		print 'time ' + repr(self.t) + 'ms: Simulator ended for ' + algorithm
@@ -166,17 +194,17 @@ class ScheduleMaster(object):
 			# Print average CPU burst time, calculated from the input data.
 			burst_times = [process.cpu_burst_time for process in self.process_list for burst_num in range(process.num_bursts)]
 			average_burst_time = '%.2f' % (sum(burst_times) / float(len(burst_times)))
-			output.write('-- average CPU burst time: ' + average_burst_time + ' ms\n')
+			output.write('-- average CPU burst time: ' + average_burst_time + 'ms\n')
 
 			# Print average wait time.
 			wait_times = [process.wait_time for process in self.process_list]
 			average_wait_time = '%.2f' % (sum(wait_times) / float(len(wait_times)))
-			output.write('-- average wait time: ' + average_wait_time + ' ms\n')
+			output.write('-- average wait time: ' + average_wait_time + 'ms\n')
 
 			# Print average turnaround time.
 			turnaround_times = [process.turnaround_time for process in self.process_list]
 			average_turnaround_time = '%.2f' % (sum(turnaround_times) / float(len(turnaround_times)))
-			output.write('-- average turnaround time: ' + average_turnaround_time + ' ms\n')
+			output.write('-- average turnaround time: ' + average_turnaround_time + 'ms\n')
 
 			output.write('-- total number of context switches: ' + repr(self.num_context_switches) + '\n')
 			output.write('-- total number of preemptions: ' + repr(self.num_preemptions) + '\n')
