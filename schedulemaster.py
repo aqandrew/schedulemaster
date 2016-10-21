@@ -161,8 +161,6 @@ class ScheduleMaster(object):
 
 						# Account for the time taken to remove each process from the CPU.
 						self.t += ScheduleMaster.t_cs / 2 - 1							
-
-			self.t += 1
 		
 			if algorithm == 'RR':
 				# Round Robin t_slice reaching 0 before it has its CPU burst
@@ -187,6 +185,8 @@ class ScheduleMaster(object):
 					else:
 						self.t_slice = 84
 						print 'time ' + repr(self.t) + 'ms: Time slice expired; no preemption because ready queue is empty ' + self.show_queue()
+		
+		self.t += 1
 
 		print 'time ' + repr(self.t) + 'ms: Simulator ended for ' + algorithm
 
