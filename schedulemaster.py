@@ -91,6 +91,7 @@ class ScheduleMaster(object):
 					# Add processes from self.process_list to ready_queue based on algorithm.
 					self.ready_queue.put(arriving_process)
 					arriving_process.turnaround_start = self.t
+					arriving_process.wait_start = self.t
 					print 'time ' + repr(self.t) + 'ms: Process ' + arriving_process.proc_id + ' arrived ' + self.show_queue()
 
 			# TODO Measure wait time for each simulated process.
@@ -108,6 +109,7 @@ class ScheduleMaster(object):
 							self.ready_queue.put(blocked_process)
 
 						blocked_process.turnaround_start = self.t
+						blocked_process.wait_start = self.t
 						print 'time ' + repr(self.t) + 'ms: Process ' + blocked_process.proc_id + ' completed I/O ' + self.show_queue()
 						blocked_process.current_job = None
 						self.blocked_processes.remove(blocked_tuple)
@@ -116,12 +118,10 @@ class ScheduleMaster(object):
 				# Print whenever a process starts using the CPU.
 				if self.ready_queue.queue:
 					self.running_process = self.ready_queue.get()
+					self.running_process.wait_times.append(self.t - self.running_process.wait_start)
 					self.t += ScheduleMaster.t_cs / 2
 					self.num_context_switches += 1
 					print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' started using the CPU ' + self.show_queue()
-					if self.running_process.wait_time == 0:
-						# Store waiting time of process
-						self.running_process.wait_time = self.t
 
 			if self.running_process:
 				if algorithm == 'RR':
@@ -180,6 +180,7 @@ class ScheduleMaster(object):
 						
 						# Put process back in queue
 						self.ready_queue.put(self.running_process)
+						self.running_process.wait_start = self.t
 							
 						print 'time ' + repr(self.t) + 'ms: Time slice expired; process ' + self.running_process.proc_id + ' preempted with ' + repr(self.running_process.time_left) + 'ms to go ' + self.show_queue()
 						
@@ -207,7 +208,7 @@ class ScheduleMaster(object):
 			output.write('-- average CPU burst time: ' + average_burst_time + ' ms\n')
 
 			# Print average wait time.
-			wait_times = [process.wait_time for process in self.process_list]
+			wait_times = [time for process in self.process_list for time in process.wait_times]
 			average_wait_time = '%.2f' % (sum(wait_times) / float(len(wait_times)))
 			output.write('-- average wait time: ' + average_wait_time + ' ms\n')
 

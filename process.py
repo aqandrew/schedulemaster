@@ -25,7 +25,8 @@ class Process(object):
 		self.io_time = int(time_io)
 
 		# Output file variables
-		self.wait_time = 0
+		self.wait_times = []
+		self.wait_start = 0
 		self.turnaround_times = []
 		self.turnaround_start = 0
 
