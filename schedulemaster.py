@@ -121,6 +121,9 @@ class ScheduleMaster(object):
 						self.running_process.wait_time = self.t
 
 			if self.running_process:
+				if algorithm == 'RR':
+					self.running_process.time_left -= 1			
+
 				if not self.running_process.current_job:
 					self.running_process.set_current_job()
 					current_operation = self.running_process.current_job
@@ -158,29 +161,32 @@ class ScheduleMaster(object):
 
 						# Account for the time taken to remove each process from the CPU.
 						self.t += ScheduleMaster.t_cs / 2 - 1							
-						
-			# Round Robin t_slice reaching 0 before it has its CPU burst
-			if self.t_slice < 0 and algorithm == 'RR':
-				if self.ready_queue.queue:
-					# Increment count of preemptions and reset time slice
-					self.t_slice = 84
-					self.num_preemptions += 1
-					
-					self.running_process.time_left -= self.t_slice
-						
-					if self.running_process.time_left == 0:
-						continue
-					
-					# Put process back in queue
-					self.ready_queue.put(self.running_process)
-						
-					print 'time ' + repr(self.t) + 'ms: Time slice expired; process ' + self.running_process.proc_id + ' preempted with ' + repr(self.running_process.time_left) + 'ms to go ' + self.show_queue()
-					
-					# Perform context switch to next process
-					self.running_process = None
-					self.t += ScheduleMaster.t_cs / 2	- 1
-						
+
 			self.t += 1
+		
+			if algorithm == 'RR':
+				# Round Robin t_slice reaching 0 before it has its CPU burst
+				if self.t_slice < 0:
+					if self.ready_queue.queue:
+						# Increment count of preemptions and reset time slice
+						self.t_slice = 84
+						self.num_preemptions += 1
+												
+						if self.running_process.time_left <= 0:
+							self.running_process.time_left = 0
+							continue
+						
+						# Put process back in queue
+						self.ready_queue.put(self.running_process)
+							
+						print 'time ' + repr(self.t) + 'ms: Time slice expired; process ' + self.running_process.proc_id + ' preempted with ' + repr(self.running_process.time_left) + 'ms to go ' + self.show_queue()
+						
+						# Perform context switch to next process
+						self.running_process = None
+						self.t += ScheduleMaster.t_cs / 2	- 1		
+					else:
+						self.t_slice = 84
+						print 'time ' + repr(self.t) + 'ms: Time slice expired; no preemption because ready queue is empty ' + self.show_queue()
 
 		print 'time ' + repr(self.t) + 'ms: Simulator ended for ' + algorithm
 
@@ -230,10 +236,7 @@ def main():
 		sm.simulate(algorithm)
 		sm.write_output(output_file, algorithm)
 		sm.reset(input_file)
-	#algorithm = algorithms[0]
-	#sm.simulate(algorithm)
-	#sm.write_output(output_file, algorithm)
 
-
+		
 if __name__ == "__main__":
 	main()
