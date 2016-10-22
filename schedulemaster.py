@@ -84,8 +84,8 @@ class ScheduleMaster(object):
 			arriving_processes = [process for process in self.process_list if process.initial_arrival_time == self.t]
 						
 			if algorithm == 'RR':
-					self.t_slice -= 1			
-						
+				self.t_slice -= 1
+
 			if arriving_processes:
 				for arriving_process in arriving_processes:
 					# Add processes from self.process_list to ready_queue based on algorithm.
