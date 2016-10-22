@@ -94,9 +94,6 @@ class ScheduleMaster(object):
 					arriving_process.wait_start = self.t
 					print 'time ' + repr(self.t) + 'ms: Process ' + arriving_process.proc_id + ' arrived ' + self.show_queue()
 
-			# TODO Measure wait time for each simulated process.
-			#			   == time spent in ready queue, excluding context switches
-
 			if self.blocked_processes:
 				for blocked_tuple in self.blocked_processes:
 					blocked_process = blocked_tuple[0]
