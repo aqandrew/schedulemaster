@@ -82,9 +82,6 @@ class ScheduleMaster(object):
 		while not all([process.has_terminated() for process in self.process_list]):
 			# Print whenever a process arrives to the CPU.
 			arriving_processes = [process for process in self.process_list if process.initial_arrival_time == self.t]
-						
-			if algorithm == 'RR':
-				self.t_slice -= 1
 
 			if arriving_processes:
 				for arriving_process in arriving_processes:
@@ -95,11 +92,13 @@ class ScheduleMaster(object):
 					print 'time ' + repr(self.t) + 'ms: Process ' + arriving_process.proc_id + ' arrived ' + self.show_queue()
 
 			if self.blocked_processes:
+				#print '\ttime {}ms: blocked_processes: {}'.format(self.t, self.blocked_processes)
 				for blocked_tuple in self.blocked_processes:
 					blocked_process = blocked_tuple[0]
 					unblock_time = blocked_tuple[1]
 
 					if self.t == unblock_time:
+						blocked_tuple[0].time_left = blocked_tuple[0].cpu_burst_time
 						if algorithm == 'SJF':
 							self.ready_queue.put(blocked_process, blocked_process.cpu_burst_time)
 						else:	
@@ -119,15 +118,32 @@ class ScheduleMaster(object):
 					self.t += ScheduleMaster.t_cs / 2
 					self.num_context_switches += 1
 					print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' started using the CPU ' + self.show_queue()
+					self.t_slice = 84
+					#print '\ttime {}ms: refreshed t_slice 1/4'.format(self.t)
+
+			if self.blocked_processes:
+				#print '\ttime {}ms: blocked_processes: {}'.format(self.t, self.blocked_processes)
+				for blocked_tuple in self.blocked_processes:
+					blocked_process = blocked_tuple[0]
+					unblock_time = blocked_tuple[1]
+
+					if self.t == unblock_time:
+						blocked_tuple[0].time_left = blocked_tuple[0].cpu_burst_time
+						if algorithm == 'SJF':
+							self.ready_queue.put(blocked_process, blocked_process.cpu_burst_time)
+						else:	
+							self.ready_queue.put(blocked_process)
+
+						blocked_process.turnaround_start = self.t
+						blocked_process.wait_start = self.t
+						print 'time ' + repr(self.t) + 'ms: Process ' + blocked_process.proc_id + ' completed I/O ' + self.show_queue()
+						blocked_process.current_job = None
+						self.blocked_processes.remove(blocked_tuple)
 
 			if self.running_process:
-				if algorithm == 'RR':
-					self.running_process.time_left -= 1			
-
 				if not self.running_process.current_job:
 					self.running_process.set_current_job()
 					current_operation = self.running_process.current_job
-					
 				
 				if current_operation.job_type == 'burst':
 					# Sets remaining_time to the time left for the CPU burst for RR algorithm
@@ -146,6 +162,7 @@ class ScheduleMaster(object):
 						else:
 							if self.t_slice > 0 and algorithm == 'RR':
 								self.t_slice = 84
+								#print '\ttime {}ms: refreshed t_slice 2/4'.format(self.t)
 								self.running_process.time_left = self.running_process.cpu_burst_time
 								
 							# Print whenever a process finishes using the CPU, i.e. completes its CPU burst.
@@ -161,32 +178,40 @@ class ScheduleMaster(object):
 						self.t += ScheduleMaster.t_cs / 2 - 1
 
 						# Prepare to perform a context switch to the next process.
-						self.running_process = None						
+						self.running_process = None				
 		
 			if algorithm == 'RR':
+				self.t_slice -= 1
+				#print '\tself.t_slice: {}'.format(self.t_slice)
 				# Round Robin t_slice reaching 0 before it has its CPU burst
 				if self.t_slice < 0:
 					if self.ready_queue.queue:
 						# Increment count of preemptions and reset time slice
 						self.t_slice = 84
+						#print '\ttime {}ms: refreshed t_slice 3/4'.format(self.t)
 						self.num_preemptions += 1
 												
-						if self.running_process.time_left <= 0:
-							self.running_process.time_left = 0
-							continue
-						
-						# Put process back in queue
-						self.ready_queue.put(self.running_process)
-						self.running_process.wait_start = self.t
+						if self.running_process:
+							if self.running_process.time_left <= 0:
+								self.running_process.time_left = self.running_process.cpu_burst_time
+
+							# Put process back in queue
+							self.ready_queue.put(self.running_process)
+							self.running_process.wait_start = self.t
+								
+							print 'time ' + repr(self.t) + 'ms: Time slice expired; process ' + self.running_process.proc_id + ' preempted with ' + repr(self.running_process.time_left) + 'ms to go ' + self.show_queue()
 							
-						print 'time ' + repr(self.t) + 'ms: Time slice expired; process ' + self.running_process.proc_id + ' preempted with ' + repr(self.running_process.time_left) + 'ms to go ' + self.show_queue()
-						
-						# Perform context switch to next process
-						self.running_process = None
-						self.t += ScheduleMaster.t_cs / 2	- 1		
+							# Perform context switch to next process
+							self.running_process = None
+							self.t += ScheduleMaster.t_cs / 2 - 1
 					else:
 						self.t_slice = 84
-						print 'time ' + repr(self.t) + 'ms: Time slice expired; no preemption because ready queue is empty ' + self.show_queue()
+						#print '\ttime {}ms: refreshed t_slice 4/4'.format(self.t)
+						if not self.blocked_processes or self.running_process:
+							print 'time ' + repr(self.t) + 'ms: Time slice expired; no preemption because ready queue is empty ' + self.show_queue()
+
+				if self.running_process:
+					self.running_process.time_left -= 1
 
 			self.t += 1
 
