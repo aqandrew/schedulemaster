@@ -92,7 +92,6 @@ class ScheduleMaster(object):
 					print 'time ' + repr(self.t) + 'ms: Process ' + arriving_process.proc_id + ' arrived ' + self.show_queue()
 
 			if self.blocked_processes:
-				#print '\ttime {}ms: blocked_processes: {}'.format(self.t, self.blocked_processes)
 				for blocked_tuple in self.blocked_processes:
 					blocked_process = blocked_tuple[0]
 					unblock_time = blocked_tuple[1]
@@ -119,10 +118,8 @@ class ScheduleMaster(object):
 					self.num_context_switches += 1
 					print 'time ' + repr(self.t) + 'ms: Process ' + self.running_process.proc_id + ' started using the CPU ' + self.show_queue()
 					self.t_slice = 84
-					#print '\ttime {}ms: refreshed t_slice 1/4'.format(self.t)
 
 			if self.blocked_processes:
-				#print '\ttime {}ms: blocked_processes: {}'.format(self.t, self.blocked_processes)
 				for blocked_tuple in self.blocked_processes:
 					blocked_process = blocked_tuple[0]
 					unblock_time = blocked_tuple[1]
@@ -162,7 +159,6 @@ class ScheduleMaster(object):
 						else:
 							if self.t_slice > 0 and algorithm == 'RR':
 								self.t_slice = 84
-								#print '\ttime {}ms: refreshed t_slice 2/4'.format(self.t)
 								self.running_process.time_left = self.running_process.cpu_burst_time
 								
 							# Print whenever a process finishes using the CPU, i.e. completes its CPU burst.
@@ -181,14 +177,12 @@ class ScheduleMaster(object):
 						self.running_process = None				
 		
 			if algorithm == 'RR':
-				self.t_slice -= 1
-				#print '\tself.t_slice: {}'.format(self.t_slice)
 				# Round Robin t_slice reaching 0 before it has its CPU burst
-				if self.t_slice < 0:
+				if self.t_slice == 0:
+					self.t_slice = 84
+
 					if self.ready_queue.queue:
 						# Increment count of preemptions and reset time slice
-						self.t_slice = 84
-						#print '\ttime {}ms: refreshed t_slice 3/4'.format(self.t)
 						self.num_preemptions += 1
 												
 						if self.running_process:
@@ -205,13 +199,13 @@ class ScheduleMaster(object):
 							self.running_process = None
 							self.t += ScheduleMaster.t_cs / 2 - 1
 					else:
-						self.t_slice = 84
-						#print '\ttime {}ms: refreshed t_slice 4/4'.format(self.t)
 						if not self.blocked_processes or self.running_process:
 							print 'time ' + repr(self.t) + 'ms: Time slice expired; no preemption because ready queue is empty ' + self.show_queue()
 
 				if self.running_process:
 					self.running_process.time_left -= 1
+
+				self.t_slice -= 1
 
 			self.t += 1
 
